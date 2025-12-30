@@ -1,0 +1,23 @@
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+  name: "{% package_name %}",
+  platforms: [
+    .macOS(.v12)
+  ],
+  dependencies: [
+    {% velox_dependency %}
+  ],
+  targets: [
+    .executableTarget(
+      name: "{% swift_module_name %}",
+      dependencies: [
+        .product(name: "VeloxRuntimeWry", package: "velox")
+      ],
+      resources: [
+        .process("Resources")
+      ]
+    )
+  ]
+)

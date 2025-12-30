@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% project_name %} (Svelte)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>{% project_name %} is ready</h1>
+      <p>This placeholder is shown until you build the Svelte frontend.</p>
+      <pre>cd frontend
+npm install
+npm run build</pre>
+      <p>Then run <code>swift build</code> and relaunch the app.</p>
+    </main>
+  </body>
+</html>

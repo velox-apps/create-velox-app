@@ -1,0 +1,5 @@
+.build/
+.swiftpm/
+*.xcodeproj
+frontend/node_modules/
+frontend/.svelte-kit/

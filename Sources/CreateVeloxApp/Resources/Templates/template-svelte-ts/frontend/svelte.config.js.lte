@@ -1,0 +1,14 @@
+import adapter from "@sveltejs/adapter-static";
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+  kit: {
+    adapter: adapter({
+      fallback: "index.html",
+      pages: "../Sources/{% swift_module_name %}/Resources/assets",
+      assets: "../Sources/{% swift_module_name %}/Resources/assets"
+    })
+  }
+};
+
+export default config;

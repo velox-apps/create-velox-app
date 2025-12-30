@@ -1,0 +1,32 @@
+# create-velox-app
+
+Swift CLI to scaffold a new Velox application.
+
+## Usage
+
+```bash
+swift run create-velox-app [PROJECTNAME]
+```
+
+Common options:
+
+- `-y, --yes` to skip prompts
+- `-f, --force` to overwrite a non-empty directory
+- `--identifier` to set the app identifier
+- `--velox-path` to use a local Velox checkout (for development)
+
+Templates:
+
+- `vanilla`
+- `svelte`
+- `svelte-ts`
+
+## Generated App
+
+The default template is a bundled-assets Velox app based on the HelloWorld2 example. It includes:
+
+- a SwiftPM executable target
+- bundled HTML/CSS/JS assets served via `app://`
+- an IPC command bridge via `ipc://`
+
+Set `VELOX_DEV_URL` to point the webview at a dev server instead of bundled assets.

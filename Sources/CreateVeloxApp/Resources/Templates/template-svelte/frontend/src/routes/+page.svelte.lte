@@ -1,0 +1,72 @@
+<script>
+  let name = $state("");
+  let greetMsg = $state("");
+
+  async function invoke(command, args = {}) {
+    const response = await fetch(`ipc://localhost/${command}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(args)
+    });
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return data.result;
+  }
+
+  async function greet(event) {
+    event.preventDefault();
+    greetMsg = await invoke("greet", { name });
+  }
+</script>
+
+<main class="container">
+  <h1>Welcome to Velox + Svelte</h1>
+  <p>Run the Svelte dev server and point Velox to it, or build static assets.</p>
+
+  <form class="row" onsubmit={greet}>
+    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
+    <button type="submit">Greet</button>
+  </form>
+  <p class="message">{greetMsg}</p>
+</main>
+
+<style>
+  .container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 520px;
+    margin: 40px auto;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .row {
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  input {
+    padding: 12px 14px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+  }
+
+  button {
+    padding: 12px 20px;
+    font-size: 16px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .message {
+    min-height: 24px;
+    color: #333;
+  }
+</style>
