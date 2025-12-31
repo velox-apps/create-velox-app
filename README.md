@@ -19,6 +19,7 @@ Templates:
 
 - `vanilla`: As simple as it gets.
 - `hummingbird`: Using the [Hummingbird HTTP Stack](https://github.com/hummingbird-project/hummingbird) for the backend.
+- `vue`: Using Vue for the front-end.
 - `svelte`: Using Svelte for the front-end.
 - `svelte-ts`: Using Svelte with Typescript for the front-end.
 
