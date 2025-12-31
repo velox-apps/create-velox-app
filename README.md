@@ -18,6 +18,7 @@ Common options:
 Templates:
 
 - `vanilla`
+- `hummingbird`
 - `svelte`
 - `svelte-ts`
 

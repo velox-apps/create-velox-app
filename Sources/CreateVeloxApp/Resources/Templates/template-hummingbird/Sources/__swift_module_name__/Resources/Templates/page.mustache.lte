@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% project_name %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-900">
+  <main class="mx-auto max-w-xl p-6">
+    <header class="mb-6">
+      <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Velox + Hummingbird</p>
+      <h1 class="text-3xl font-semibold">{% project_name %}</h1>
+    </header>
+    <section class="rounded-2xl bg-white p-6 shadow-lg">
+      {{$body}}
+      {{/body}}
+    </section>
+    <footer class="mt-6 text-xs text-slate-400">
+      HTML rendered by Hummingbird + Mustache
+    </footer>
+  </main>
+</body>
+</html>

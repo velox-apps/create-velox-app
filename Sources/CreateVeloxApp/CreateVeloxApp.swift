@@ -92,7 +92,7 @@ struct CreateVeloxApp: ParsableCommand {
     print("  swift run \(swiftModuleName)")
 
     if !printMissingDeps() {
-      print("\nTip: set VELOX_DEV_URL to load a dev server instead of bundled assets.")
+      print("\nTip: set VELOX_DEV_URL to load a dev server instead of the built-in UI.")
       if !bootstrapSucceeded {
         print("Important: on macOS run `make bootstrap` before the first build or it will fail.")
       }

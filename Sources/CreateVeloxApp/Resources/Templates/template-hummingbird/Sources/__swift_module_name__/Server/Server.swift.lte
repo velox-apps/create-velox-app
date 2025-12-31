@@ -1,0 +1,102 @@
+import Foundation
+import Hummingbird
+import Logging
+import Mustache
+
+struct ServerSettings {
+  let hostname: String
+  let port: Int
+}
+
+struct AppRequestContext: RequestContext {
+  var coreContext: CoreRequestContextStorage
+
+  init(source: Source) {
+    self.coreContext = .init(source: source)
+  }
+
+  var requestDecoder: URLEncodedFormDecoder { .init() }
+}
+
+func resolveServerSettings() -> ServerSettings {
+  let env = ProcessInfo.processInfo.environment
+  let hostname = env["VELOX_SERVER_HOST"] ?? "127.0.0.1"
+  let port = Int(env["VELOX_SERVER_PORT"] ?? "") ?? 8080
+  return ServerSettings(hostname: hostname, port: port)
+}
+
+func startServer(settings: ServerSettings, onReady: @escaping @Sendable () -> Void) {
+  Task.detached {
+    do {
+      let app = try await buildApplication(settings: settings) {
+        onReady()
+      }
+      try await app.run()
+    } catch {
+      print("Hummingbird server failed: \(error)")
+      onReady()
+    }
+  }
+}
+
+func buildApplication(
+  settings: ServerSettings,
+  onServerRunning: @escaping @Sendable () -> Void = {}
+) async throws -> some ApplicationProtocol {
+  var logger = Logger(label: "{% package_name %}")
+  logger.logLevel = .info
+
+  guard let resourceURL = Bundle.module.resourceURL else {
+    throw TemplateError.missingResources
+  }
+
+  let templateRoot = resolveTemplateRoot(resourceURL)
+  let mustacheLibrary = try await MustacheLibrary(directory: templateRoot.path)
+  let router = Router(context: AppRequestContext.self)
+  WebController(mustacheLibrary: mustacheLibrary).addRoutes(to: router)
+
+  let config = ApplicationConfiguration(
+    address: .hostname(settings.hostname, port: settings.port),
+    serverName: "{% package_name %}"
+  )
+
+  let app = Application(
+    router: router,
+    configuration: config,
+    onServerRunning: { _ in onServerRunning() },
+    logger: logger
+  )
+
+  return app
+}
+
+enum TemplateError: Error {
+  case missingResources
+}
+
+private func resolveTemplateRoot(_ resourceURL: URL) -> URL {
+  let candidates = [
+    resourceURL.appendingPathComponent("Templates"),
+    resourceURL
+  ]
+
+  for candidate in candidates {
+    if containsMustacheTemplates(at: candidate) {
+      return candidate
+    }
+  }
+
+  return resourceURL
+}
+
+private func containsMustacheTemplates(at url: URL) -> Bool {
+  guard let enumerator = FileManager.default.enumerator(atPath: url.path) else {
+    return false
+  }
+
+  for case let path as String in enumerator where path.hasSuffix(".mustache") {
+    return true
+  }
+
+  return false
+}

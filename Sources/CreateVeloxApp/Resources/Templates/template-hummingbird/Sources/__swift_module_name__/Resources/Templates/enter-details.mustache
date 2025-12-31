@@ -1,0 +1,18 @@
+{{<page}}
+  {{$body}}
+    <h2 class="text-xl font-medium mb-4">Please enter your details</h2>
+    <form action="/" method="post" class="grid gap-4">
+      <label class="grid gap-2 text-sm" for="name">
+        <span class="text-slate-600">Name</span>
+        <input type="text" id="name" name="name" class="rounded-md border border-slate-200 px-3 py-2" />
+      </label>
+      <label class="grid gap-2 text-sm" for="age">
+        <span class="text-slate-600">Age</span>
+        <input type="number" id="age" name="age" class="rounded-md border border-slate-200 px-3 py-2" />
+      </label>
+      <button type="submit" class="mt-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+        Submit
+      </button>
+    </form>
+  {{/body}}
+{{/page}}

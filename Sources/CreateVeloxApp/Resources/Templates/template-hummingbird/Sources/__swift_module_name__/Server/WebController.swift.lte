@@ -1,0 +1,42 @@
+import Hummingbird
+import Mustache
+
+struct HTML: ResponseGenerator {
+  let html: String
+
+  func response(from request: Request, context: some RequestContext) throws -> Response {
+    let buffer = ByteBuffer(string: self.html)
+    return .init(
+      status: .ok,
+      headers: [.contentType: "text/html; charset=utf-8"],
+      body: .init(byteBuffer: buffer)
+    )
+  }
+}
+
+struct WebController {
+  let mustacheLibrary: MustacheLibrary
+
+  func addRoutes(to router: Router<some RequestContext>) {
+    router.get("/", use: self.input)
+    router.post("/", use: self.post)
+  }
+
+  @Sendable func input(request: Request, context: some RequestContext) -> HTML {
+    render(EmptyContext(), template: "enter-details")
+  }
+
+  @Sendable func post(request: Request, context: some RequestContext) async throws -> HTML {
+    let user = try await request.decode(as: User.self, context: context)
+    return render(user, template: "details-entered")
+  }
+
+  private func render<T: Encodable>(_ value: T, template: String) -> HTML {
+    guard let html = self.mustacheLibrary.render(value, withTemplate: template) else {
+      return HTML(html: "<h1>Template error</h1>")
+    }
+    return HTML(html: html)
+  }
+}
+
+private struct EmptyContext: Encodable {}

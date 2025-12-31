@@ -3,6 +3,7 @@ import ArgumentParser
 
 enum Template: String, CaseIterable, ExpressibleByArgument, CustomStringConvertible {
   case vanilla
+  case hummingbird
   case svelte
   case svelteTs = "svelte-ts"
 
