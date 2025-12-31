@@ -17,10 +17,10 @@ Common options:
 
 Templates:
 
-- `vanilla`
-- `hummingbird`
-- `svelte`
-- `svelte-ts`
+- `vanilla`: As simple as it gets.
+- `hummingbird`: Using the [Hummingbird HTTP Stack](https://github.com/hummingbird-project/hummingbird) for the backend.
+- `svelte`: Using Svelte for the front-end.
+- `svelte-ts`: Using Svelte with Typescript for the front-end.
 
 ## Generated App
 
