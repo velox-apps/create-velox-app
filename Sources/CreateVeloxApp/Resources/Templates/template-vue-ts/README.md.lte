@@ -1,0 +1,67 @@
+# {% project_name %}
+
+This is a Velox app scaffolded by create-velox-app.
+
+## Run
+
+```bash
+make bootstrap
+swift build
+swift run {% swift_module_name %}
+```
+
+## Development
+
+To load a dev server instead of bundled assets, set `VELOX_DEV_URL`:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+In another terminal:
+
+```bash
+VELOX_DEV_URL=http://localhost:5173 swift run {% swift_module_name %}
+```
+
+To bundle the frontend into the app, run:
+
+```bash
+cd frontend
+npm run build
+cd ..
+swift build
+swift run {% swift_module_name %}
+```
+
+The build output is written to `Sources/{% swift_module_name %}/Resources/assets`.
+
+## Identifier
+
+`{% identifier %}`
+
+## Build Notes (macOS)
+
+Velox builds a Rust FFI library via a SwiftPM build plugin. SwiftPM runs plugins
+in a sandbox by default, which can block Cargo network access and prevent lock
+file updates in read-only checkouts. Run the bootstrap target once before your
+first build:
+
+```bash
+make bootstrap
+```
+
+`create-velox-app` attempts to run `make bootstrap` automatically on macOS. If
+that fails, rerun it manually.
+
+If the target cannot locate the Velox checkout, set `VELOX_PATH` manually:
+
+```bash
+VELOX_PATH=../velox make bootstrap
+```
+
+After bootstrap, regular `swift build` runs should work. If you generated this
+project with `--velox-path`, the local checkout is already writable, but you may
+still need `make bootstrap` for the initial Cargo dependency fetch.

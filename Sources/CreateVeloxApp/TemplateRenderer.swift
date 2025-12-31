@@ -5,6 +5,7 @@ enum Template: String, CaseIterable, ExpressibleByArgument, CustomStringConverti
   case vanilla
   case hummingbird
   case vue
+  case vueTs = "vue-ts"
   case svelte
   case svelteTs = "svelte-ts"
 
