@@ -4,6 +4,8 @@ import ArgumentParser
 enum Template: String, CaseIterable, ExpressibleByArgument, CustomStringConvertible {
   case vanilla
   case hummingbird
+  case hummingbirdVue = "hummingbird-vue"
+  case hummingbirdVueTs = "hummingbird-vue-ts"
   case vue
   case vueTs = "vue-ts"
   case svelte

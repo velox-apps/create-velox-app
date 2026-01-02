@@ -1,0 +1,141 @@
+import Foundation
+import VeloxRuntimeWry
+
+// MARK: - Command Handler
+
+func greet(name: String) -> String {
+  "Hello \(name), You have been greeted from Swift!"
+}
+
+func handleInvoke(request: VeloxRuntimeWry.CustomProtocol.Request) -> VeloxRuntimeWry.CustomProtocol.Response? {
+  guard let url = URL(string: request.url) else {
+    return errorResponse(message: "Invalid URL")
+  }
+
+  let command = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+  var args: [String: Any] = [:]
+
+  if !request.body.isEmpty,
+     let json = try? JSONSerialization.jsonObject(with: request.body) as? [String: Any] {
+    args = json
+  }
+
+  switch command {
+  case "greet":
+    let name = args["name"] as? String ?? "World"
+    let result = greet(name: name)
+    return jsonResponse(["result": result])
+  default:
+    return errorResponse(message: "Unknown command: \(command)")
+  }
+}
+
+func jsonResponse(_ data: [String: Any]) -> VeloxRuntimeWry.CustomProtocol.Response {
+  let jsonData = (try? JSONSerialization.data(withJSONObject: data)) ?? Data()
+  return VeloxRuntimeWry.CustomProtocol.Response(
+    status: 200,
+    headers: ["Content-Type": "application/json", "Access-Control-Allow-Origin": "*"],
+    mimeType: "application/json",
+    body: jsonData
+  )
+}
+
+func errorResponse(message: String) -> VeloxRuntimeWry.CustomProtocol.Response {
+  let error: [String: Any] = ["error": message]
+  let jsonData = (try? JSONSerialization.data(withJSONObject: error)) ?? Data()
+  return VeloxRuntimeWry.CustomProtocol.Response(
+    status: 400,
+    headers: ["Content-Type": "application/json", "Access-Control-Allow-Origin": "*"],
+    mimeType: "application/json",
+    body: jsonData
+  )
+}
+
+// MARK: - Application Entry Point
+
+func main() {
+  guard Thread.isMainThread else {
+    fatalError("This app must run on the main thread")
+  }
+
+  final class ServerReady: @unchecked Sendable {
+    let semaphore = DispatchSemaphore(value: 0)
+  }
+
+  let serverSettings = resolveServerSettings()
+  let serverReady = ServerReady()
+  startServer(settings: serverSettings) {
+    serverReady.semaphore.signal()
+  }
+
+  if serverReady.semaphore.wait(timeout: .now() + 5) == .timedOut {
+    print("Warning: Hummingbird server did not signal readiness yet.")
+  }
+
+  guard let eventLoop = VeloxRuntimeWry.EventLoop() else {
+    fatalError("Failed to create event loop")
+  }
+
+  #if os(macOS)
+  eventLoop.setActivationPolicy(.regular)
+  #endif
+
+  let ipcProtocol = VeloxRuntimeWry.CustomProtocol(scheme: "ipc") { request in
+    handleInvoke(request: request)
+  }
+
+  let windowConfig = VeloxRuntimeWry.WindowConfiguration(
+    width: 800,
+    height: 600,
+    title: "Welcome to \(VeloxConfig.productName)!"
+  )
+
+  guard let window = eventLoop.makeWindow(configuration: windowConfig) else {
+    fatalError("Failed to create window")
+  }
+
+  let startURL: String
+  if let devURL = ProcessInfo.processInfo.environment["VELOX_DEV_URL"] {
+    startURL = devURL
+  } else {
+    let host = serverSettings.hostname == "0.0.0.0" ? "127.0.0.1" : serverSettings.hostname
+    startURL = "http://\(host):\(serverSettings.port)/"
+  }
+
+  let webviewConfig = VeloxRuntimeWry.WebviewConfiguration(
+    url: startURL,
+    customProtocols: [ipcProtocol]
+  )
+
+  guard let webview = window.makeWebview(configuration: webviewConfig) else {
+    fatalError("Failed to create webview")
+  }
+
+  _ = window.setVisible(true)
+  _ = window.focus()
+  _ = webview.show()
+
+  #if os(macOS)
+  eventLoop.showApplication()
+  #endif
+
+  final class AppState: @unchecked Sendable {
+    var shouldExit = false
+  }
+
+  let state = AppState()
+
+  while !state.shouldExit {
+    eventLoop.pump { event in
+      switch event {
+      case .windowCloseRequested, .userExit:
+        state.shouldExit = true
+        return .exit
+      default:
+        return .wait
+      }
+    }
+  }
+}
+
+main()

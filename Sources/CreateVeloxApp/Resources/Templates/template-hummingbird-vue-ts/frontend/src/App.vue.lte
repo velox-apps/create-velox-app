@@ -1,0 +1,41 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const name = ref("");
+const message = ref("");
+
+async function invoke(command: string, args: Record<string, unknown> = {}) {
+  const response = await fetch(`ipc://localhost/${command}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(args)
+  });
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error);
+  }
+  return data.result as string;
+}
+
+async function greet() {
+  const input = name.value.trim() || "World";
+  message.value = await invoke("greet", { name: input });
+}
+</script>
+
+<template>
+  <main class="shell">
+    <header>
+      <p class="eyebrow">Velox + Vue</p>
+      <h1>Welcome to {% project_name %}</h1>
+      <p class="lead">Run the Vue dev server or build static assets for production.</p>
+    </header>
+
+    <form class="row" @submit.prevent="greet">
+      <input v-model="name" type="text" placeholder="Enter a name..." />
+      <button type="submit">Greet</button>
+    </form>
+
+    <p class="message">{{ message }}</p>
+  </main>
+</template>

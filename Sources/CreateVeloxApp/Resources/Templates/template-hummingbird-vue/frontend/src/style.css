@@ -1,0 +1,63 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #101828;
+  background-color: #f5f5f5;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.shell {
+  width: min(600px, 90vw);
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(16, 24, 40, 0.12);
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 12px;
+  color: #667085;
+  margin: 0 0 12px;
+}
+
+.lead {
+  color: #475467;
+  margin-top: 8px;
+}
+
+.row {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.row input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d0d5dd;
+  font-size: 16px;
+}
+
+.row button {
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  background: #1570ef;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.message {
+  min-height: 24px;
+  margin-top: 16px;
+  color: #344054;
+}
