@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
   name: "{% package_name %}",
   platforms: [
-    .macOS(.v12)
+    .macOS(.v13)
   ],
   dependencies: [
     {% velox_dependency %}
@@ -13,6 +13,7 @@ let package = Package(
     .executableTarget(
       name: "{% swift_module_name %}",
       dependencies: [
+        .product(name: "VeloxRuntime", package: "velox"),
         .product(name: "VeloxRuntimeWry", package: "velox")
       ],
       resources: [

@@ -1,4 +1,5 @@
 import Foundation
+import VeloxRuntime
 import VeloxRuntimeWry
 
 // MARK: - Command Handler
@@ -72,26 +73,16 @@ func main() {
     print("Warning: Hummingbird server did not signal readiness yet.")
   }
 
-  guard let eventLoop = VeloxRuntimeWry.EventLoop() else {
-    fatalError("Failed to create event loop")
-  }
+  let projectRoot = URL(fileURLWithPath: #file)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
 
-  #if os(macOS)
-  eventLoop.setActivationPolicy(.regular)
-  #endif
-
-  let ipcProtocol = VeloxRuntimeWry.CustomProtocol(scheme: "ipc") { request in
-    handleInvoke(request: request)
-  }
-
-  let windowConfig = VeloxRuntimeWry.WindowConfiguration(
-    width: 800,
-    height: 600,
-    title: "Welcome to \(VeloxConfig.productName)!"
-  )
-
-  guard let window = eventLoop.makeWindow(configuration: windowConfig) else {
-    fatalError("Failed to create window")
+  var config: VeloxConfig
+  do {
+    config = try VeloxConfig.load(from: projectRoot)
+  } catch {
+    fatalError("Failed to load velox.json: \(error)")
   }
 
   let startURL: String
@@ -102,30 +93,25 @@ func main() {
     startURL = "http://\(host):\(serverSettings.port)/"
   }
 
-  let webviewConfig = VeloxRuntimeWry.WebviewConfiguration(
-    url: startURL,
-    customProtocols: [ipcProtocol]
-  )
-
-  guard let webview = window.makeWebview(configuration: webviewConfig) else {
-    fatalError("Failed to create webview")
+  for index in config.app.windows.indices {
+    config.app.windows[index].url = startURL
   }
 
-  _ = window.setVisible(true)
-  _ = window.focus()
-  _ = webview.show()
-
-  #if os(macOS)
-  eventLoop.showApplication()
-  #endif
-
-  eventLoop.run { event in
-    switch event {
-    case .windowCloseRequested, .userExit:
-      return .exit
-    default:
-      return .wait
-    }
+  do {
+    try VeloxAppBuilder(config: config)
+      .registerProtocol("ipc") { request in
+        handleInvoke(request: request)
+      }
+      .run { event in
+        switch event {
+        case .windowCloseRequested, .userExit:
+          return .exit
+        default:
+          return .wait
+        }
+      }
+  } catch {
+    fatalError("Failed to start app: \(error)")
   }
 }
 

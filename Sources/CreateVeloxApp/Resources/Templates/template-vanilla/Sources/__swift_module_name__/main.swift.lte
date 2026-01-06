@@ -1,4 +1,5 @@
 import Foundation
+import VeloxRuntime
 import VeloxRuntimeWry
 
 // MARK: - Asset Bundle
@@ -144,88 +145,67 @@ func main() {
     fatalError("This app must run on the main thread")
   }
 
-  guard let eventLoop = VeloxRuntimeWry.EventLoop() else {
-    fatalError("Failed to create event loop")
+  let projectRoot = URL(fileURLWithPath: #file)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+
+  var config: VeloxConfig
+  do {
+    config = try VeloxConfig.load(from: projectRoot)
+  } catch {
+    fatalError("Failed to load velox.json: \(error)")
   }
 
-  #if os(macOS)
-  eventLoop.setActivationPolicy(.regular)
-  #endif
-
-  let ipcProtocol = VeloxRuntimeWry.CustomProtocol(scheme: "ipc") { request in
-    handleInvoke(request: request)
+  if let devURL = ProcessInfo.processInfo.environment["VELOX_DEV_URL"], !devURL.isEmpty {
+    for index in config.app.windows.indices {
+      config.app.windows[index].url = devURL
+    }
+    print("[velox] Dev server enabled: \(devURL)")
   }
 
-  let windowConfig = VeloxRuntimeWry.WindowConfiguration(
-    width: 800,
-    height: 600,
-    title: "Welcome to \(VeloxConfig.productName)!"
-  )
-
-  guard let window = eventLoop.makeWindow(configuration: windowConfig) else {
-    fatalError("Failed to create window")
-  }
-
-  let devURL = ProcessInfo.processInfo.environment["VELOX_DEV_URL"]
-  let webviewConfig: VeloxRuntimeWry.WebviewConfiguration
-
-  if let devURL {
-    webviewConfig = VeloxRuntimeWry.WebviewConfiguration(
-      url: devURL,
-      customProtocols: [ipcProtocol]
-    )
-  } else {
-    let assets = AssetBundle()
-    let appProtocol = VeloxRuntimeWry.CustomProtocol(scheme: "app") { request in
-      guard let url = URL(string: request.url) else {
-        return VeloxRuntimeWry.CustomProtocol.Response(
-          status: 400,
-          headers: ["Content-Type": "text/plain"],
-          body: Data("Invalid URL".utf8)
-        )
-      }
-
-      if let asset = assets.loadAsset(path: url.path) {
-        return VeloxRuntimeWry.CustomProtocol.Response(
-          status: 200,
-          headers: ["Content-Type": asset.mimeType],
-          mimeType: asset.mimeType,
-          body: asset.data
-        )
-      }
-
+  let assets = AssetBundle()
+  let appHandler: VeloxRuntimeWry.CustomProtocol.Handler = { request in
+    guard let url = URL(string: request.url) else {
       return VeloxRuntimeWry.CustomProtocol.Response(
-        status: 404,
+        status: 400,
         headers: ["Content-Type": "text/plain"],
-        body: Data("Asset not found: \(url.path)".utf8)
+        body: Data("Invalid URL".utf8)
       )
     }
 
-    webviewConfig = VeloxRuntimeWry.WebviewConfiguration(
-      url: "app://localhost/",
-      customProtocols: [ipcProtocol, appProtocol]
+    if let asset = assets.loadAsset(path: url.path) {
+      return VeloxRuntimeWry.CustomProtocol.Response(
+        status: 200,
+        headers: ["Content-Type": asset.mimeType],
+        mimeType: asset.mimeType,
+        body: asset.data
+      )
+    }
+
+    return VeloxRuntimeWry.CustomProtocol.Response(
+      status: 404,
+      headers: ["Content-Type": "text/plain"],
+      body: Data("Asset not found: \(url.path)".utf8)
     )
   }
 
-  guard let webview = window.makeWebview(configuration: webviewConfig) else {
-    fatalError("Failed to create webview")
-  }
-
-  _ = window.setVisible(true)
-  _ = window.focus()
-  _ = webview.show()
-
-  #if os(macOS)
-  eventLoop.showApplication()
-  #endif
-
-  eventLoop.run { event in
-    switch event {
-    case .windowCloseRequested, .userExit:
-      return .exit
-    default:
-      return .wait
-    }
+  do {
+    try VeloxAppBuilder(config: config)
+      .registerProtocol("ipc") { request in
+        handleInvoke(request: request)
+      }
+      .registerProtocol("app", handler: appHandler)
+      .run { event in
+        switch event {
+        case .windowCloseRequested, .userExit:
+          return .exit
+        default:
+          return .wait
+        }
+      }
+  } catch {
+    fatalError("Failed to start app: \(error)")
   }
 }
 

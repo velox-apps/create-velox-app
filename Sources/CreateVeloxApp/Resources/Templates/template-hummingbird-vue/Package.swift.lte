@@ -15,6 +15,7 @@ let package = Package(
     .executableTarget(
       name: "{% swift_module_name %}",
       dependencies: [
+        .product(name: "VeloxRuntime", package: "velox"),
         .product(name: "VeloxRuntimeWry", package: "velox"),
         .product(name: "Hummingbird", package: "hummingbird"),
         .product(name: "Logging", package: "swift-log")

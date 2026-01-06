@@ -1,6 +1,0 @@
-import Foundation
-
-enum VeloxConfig {
-  static let productName = "{% project_name %}"
-  static let identifier = "{% identifier %}"
-}
