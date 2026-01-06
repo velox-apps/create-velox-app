@@ -1,0 +1,26 @@
+{
+  "$schema": "https://velox.dev/schema/velox.schema.json",
+  "productName": "{% project_name %}",
+  "version": "1.0.0",
+  "identifier": "{% identifier %}",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "{% project_name %}",
+        "width": 800,
+        "height": 600,
+        "url": "http://127.0.0.1:8080/",
+        "create": true,
+        "visible": true,
+        "focus": true,
+        "resizable": true,
+        "decorations": true,
+        "customProtocols": ["ipc"]
+      }
+    ],
+    "macOS": {
+      "activationPolicy": "regular"
+    }
+  }
+}

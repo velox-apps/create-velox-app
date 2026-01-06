@@ -1,0 +1,29 @@
+{
+  "$schema": "https://velox.dev/schema/velox.schema.json",
+  "productName": "{% project_name %}",
+  "version": "1.0.0",
+  "identifier": "{% identifier %}",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "{% project_name %}",
+        "width": 800,
+        "height": 600,
+        "url": "app://localhost/",
+        "create": true,
+        "visible": true,
+        "focus": true,
+        "resizable": true,
+        "decorations": true,
+        "customProtocols": ["app", "ipc"]
+      }
+    ],
+    "macOS": {
+      "activationPolicy": "regular"
+    }
+  },
+  "build": {
+    "frontendDist": "Sources/{% swift_module_name %}/Resources/assets"
+  }
+}
